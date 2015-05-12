@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Management.Instrumentation;
 
 namespace DataStructure
@@ -9,7 +8,7 @@ namespace DataStructure
         where TV : IComparable
     {
         readonly double _probability;
-        private static Node<TK, TV> _header;
+        private Node<TK, TV> _header;
         private const int MaxLevel = 32;
         readonly Random _random = new Random();
         private static readonly Node<TK, TV> EndNode = null;
@@ -22,17 +21,17 @@ namespace DataStructure
         }
 
 
-        private static void InitializeHeader()
+        private void InitializeHeader()
         {
-            _header = new Node<TK, TV>(default(TK), default(TV), 32);
-            for (int i = 0; i < 32; i++)
+            _header = new Node<TK, TV>(default(TK), default(TV), MaxLevel);
+            for (var i = 0; i < MaxLevel; i++)
             {
                 _header.Next[i] = EndNode;
             }
         }
 
 
-        public int ChooseElementLevel()
+        private int ChooseElementLevel()
         {
             var level = 0;
             var rand = _random.NextDouble();
@@ -52,7 +51,8 @@ namespace DataStructure
             var currentNode = _header;
             for (var currentLevel = level; currentLevel > -1; currentLevel--)
             {
-                while (currentNode.Key.CompareTo(key) <= 0 && currentNode.Next[currentLevel] != EndNode)
+                while (!ReferenceEquals(currentNode.Next[currentLevel], EndNode) 
+                    && currentNode.Key.CompareTo(key) <= 0)
                 {
                     if (currentNode.Next[currentLevel].Key.CompareTo(key) == 0)
                     {
@@ -63,10 +63,11 @@ namespace DataStructure
                 }
                 update[currentLevel] = currentNode;
             }
-            var newNode = new Node<TK, TV>(key, value, level);
-            for (var currentLevel = 0; currentLevel < level; currentLevel++)
+            var newNode = new Node<TK, TV>(key, value, level+1);
+            for (var currentLevel = 0; currentLevel < level+1; currentLevel++)
             {
-                newNode.Next[currentLevel] = update[currentLevel];
+                //Верно ли?
+                newNode.Next[currentLevel] = update[currentLevel].Next[currentLevel];
                 update[currentLevel].Next[currentLevel] = newNode;
             }
         }
@@ -77,7 +78,8 @@ namespace DataStructure
             var currentNode = _header;
             for (var currentLevel = MaxLevel-1; currentLevel > -1; currentLevel--)
             {
-                while (currentNode.Next[currentLevel] != EndNode && currentNode.Next[currentLevel].Key.CompareTo(key) < 0)
+                while (!ReferenceEquals(currentNode.Next[currentLevel], EndNode) 
+                    && currentNode.Next[currentLevel].Key.CompareTo(key) <= 0)
                 {
                     currentNode = currentNode.Next[currentLevel];
                 }
@@ -87,6 +89,31 @@ namespace DataStructure
             if (currentNode.Key.CompareTo(key) == 0)
                 return currentNode.Value;
             throw new InstanceNotFoundException(string.Format("There's no node with key: {0}", key));
+        }
+
+
+        public TV Remove(TK key)
+        {
+            var update = new Node<TK, TV>[MaxLevel];
+            var currentNode = _header;
+            for (var currentLevel = MaxLevel - 1; currentLevel > -1; currentLevel--)
+            {
+                while (!ReferenceEquals(currentNode.Next[currentLevel], EndNode)
+                    && currentNode.Key.CompareTo(key) <= 0)
+                    currentNode = currentNode.Next[currentLevel];
+                update[currentLevel] = currentNode;
+            }
+            if (currentNode.Key.CompareTo(key) == 0)
+            {
+                for (var level = 0; level < MaxLevel; level++)
+                {
+                    if (update[level].Next[level].Key.CompareTo(key) != 0)
+                        break;
+                    update[level].Next[level] = currentNode.Next[level];
+                }
+                return currentNode.Value;
+            }
+            throw new InstanceNotFoundException(String.Format("There's no element to remove with key: {0}", key));
         }
     }
 }
