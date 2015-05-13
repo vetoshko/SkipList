@@ -25,13 +25,21 @@ namespace DataStructure
         }
 
         [Test]
-        [ExpectedException]
         public void RemoveElement()
         {
             var myList = new SkipList<int, int>(0.5);
             myList.Insert(1, 2);
             myList.Insert(3, 4);
             Assert.AreEqual(2, myList.Remove(1));
+        }
+
+        [Test]
+        [ExpectedException]
+        public void ThrowExceptionNothingToRemove()
+        {
+            var myList = new SkipList<int, int>(0.5);
+            myList.Insert(1, 2);
+            myList.Insert(3, 4);
             Assert.AreEqual(typeof(InstanceNotFoundException), myList.Search(1));
         }
     }

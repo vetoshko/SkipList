@@ -9,7 +9,7 @@ namespace DataStructure
     {
         readonly double _probability;
         private Node<TK, TV> _header;
-        private const int MaxLevel = 32;
+        private const int MaxLevel = 4;
         readonly Random _random = new Random();
         private static readonly Node<TK, TV> EndNode = null;
 
@@ -35,7 +35,7 @@ namespace DataStructure
         {
             var level = 0;
             var rand = _random.NextDouble();
-            while (rand < _probability && level < MaxLevel)
+            while (rand < _probability && level < MaxLevel-1)
             {
                 level++;
                 rand = _random.NextDouble();
@@ -52,7 +52,7 @@ namespace DataStructure
             for (var currentLevel = level; currentLevel > -1; currentLevel--)
             {
                 while (!ReferenceEquals(currentNode.Next[currentLevel], EndNode) 
-                    && currentNode.Key.CompareTo(key) <= 0)
+                    && currentNode.Key.CompareTo(key) < 0)
                 {
                     if (currentNode.Next[currentLevel].Key.CompareTo(key) == 0)
                     {
@@ -99,15 +99,17 @@ namespace DataStructure
             for (var currentLevel = MaxLevel - 1; currentLevel > -1; currentLevel--)
             {
                 while (!ReferenceEquals(currentNode.Next[currentLevel], EndNode)
-                    && currentNode.Key.CompareTo(key) <= 0)
+                    && currentNode.Next[currentLevel].Key.CompareTo(key) < 0)
                     currentNode = currentNode.Next[currentLevel];
                 update[currentLevel] = currentNode;
             }
+            currentNode = currentNode.Next[0];
             if (currentNode.Key.CompareTo(key) == 0)
             {
                 for (var level = 0; level < MaxLevel; level++)
                 {
-                    if (update[level].Next[level].Key.CompareTo(key) != 0)
+                    if (!ReferenceEquals(update[level].Next[level], EndNode)
+                        && update[level].Next[level].Key.CompareTo(key) != 0)
                         break;
                     update[level].Next[level] = currentNode.Next[level];
                 }
