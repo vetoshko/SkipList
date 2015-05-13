@@ -9,8 +9,8 @@ namespace DataStructure
     {
         readonly double _probability;
         private Node<TK, TV> _header;
-        private const int MaxLevel = 4;
-        readonly Random _random = new Random();
+        private readonly MyRandom _random = new MyRandom();
+        private const int MaxLevel = 32;
         private static readonly Node<TK, TV> EndNode = null;
 
 
@@ -30,23 +30,10 @@ namespace DataStructure
             }
         }
 
-
-        private int ChooseElementLevel()
-        {
-            var level = 0;
-            var rand = _random.NextDouble();
-            while (rand < _probability && level < MaxLevel-1)
-            {
-                level++;
-                rand = _random.NextDouble();
-            }
-            return level;
-        }
-
      
         public void Insert(TK key, TV value)
         {
-            var level = ChooseElementLevel();
+            var level = _random.ChooseElementLevel(_probability, MaxLevel);
             var update = new Node<TK, TV>[level+1];
             var currentNode = _header;
             for (var currentLevel = level; currentLevel > -1; currentLevel--)
